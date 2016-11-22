@@ -3,8 +3,8 @@ import os.path
 import pickle
 import getpass
 
-class User(object):
 
+class User(object):
     """Contain username and password."""
 
     def __init__(self, path='.thu'):
@@ -24,7 +24,6 @@ class User(object):
             self.set_user()
         with open(self._filename, 'rb') as file:
             return pickle.load(file)
-
 
     def _store(self):
         with open(self._filename, 'wb') as file:
