@@ -10,3 +10,4 @@ __copyright__ = "Copyright (c) 2016 Yongwen Zhuang"
 __license__ = "GPLv3"
 from .user import User
 from .net import Net
+from .learn import Semester
