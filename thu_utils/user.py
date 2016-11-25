@@ -20,11 +20,13 @@ class User(object):
         self._path = path
         home = os.path.expanduser('~')
         self._filename = os.path.join(home, self._path)
-        self._data = self._load()
+        if not os.path.exists(self._filename):
+            self._data = {}
+            self.set_user()
+        else:
+            self._data = self._load()
 
     def _load(self):
-        if not os.path.exists(self._filename):
-            self.set_user()
         with open(self._filename, 'rb') as file:
             return pickle.load(file)
 
