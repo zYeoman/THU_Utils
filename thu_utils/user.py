@@ -42,6 +42,10 @@ class User(object):
         self._data['password'] = password
         self._store()
 
+    def del_user(self):
+        # TODO: Test on linux
+        os.remove(self._filename)
+
     @property
     def username(self):
         return self._data['username']
