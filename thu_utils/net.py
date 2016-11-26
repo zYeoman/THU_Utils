@@ -21,7 +21,7 @@ class Net(object):
     def show(self):
         req = self._session.post(self._login_url, {'action':'check_online'})
         req_content = req.content
-        print(req_content)
+        print(req_content.decode())
         if req_content != b'not_online':
             req = self._session.post(self._base + 'rad_user_info.php')
             req_content = req.content
@@ -40,9 +40,9 @@ class Net(object):
             'ac_id': 1
         }
         req = self._session.post(self._login_url, data)
-        return req.content
+        return req.content.decode()
 
     def logout(self):
         date = {'action': 'logout'}
         req = self._session.post(self._login_url, date)
-        return req.content
+        return req.content.decode()
