@@ -43,6 +43,6 @@ class Net(object):
         return req.content.decode()
 
     def logout(self):
-        date = {'action': 'logout'}
-        req = self._session.post(self._login_url, date)
+        data = {'action': 'logout'}
+        req = self._session.post(self._login_url, data)
         return req.content.decode()
