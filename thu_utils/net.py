@@ -16,7 +16,6 @@ class Net(object):
         self._session = requests.session()
         self._base = 'http://net.tsinghua.edu.cn/'
         self._login_url = self._base + 'do_login.php'
-        self._net_usage = namedtuple('NetUsage', 'ip user traffic timelen')
 
     def show(self):
         req = self._session.post(self._login_url, {'action':'check_online'})
@@ -25,12 +24,13 @@ class Net(object):
         if req_content != b'not_online':
             req = self._session.post(self._base + 'rad_user_info.php')
             req_content = req.content
-            info = req_content.split(b',')
-            info = self._net_usage(*[
-                info[8], info[0], int(info[6]) / 1000000000,
-                int(info[2]) - int(info[1])
-            ])
-            print(info)
+            info = req_content.decode().split(',')
+            traffic = int(info[6])/1000000000
+            timelen = int(info[2]) - int(info[1])
+            timelen_str = '{}:{}:{}'.format(timelen//3600,timelen//60%60,timelen%60)
+            info_str = 'NetUsage(ip={0[8]},user={0[0]},traffic={1:.2f}GB,timelen={2})'
+            info_str = info_str.format(info, traffic, timelen_str)
+            print(info_str)
 
     def login(self):
         data = {
