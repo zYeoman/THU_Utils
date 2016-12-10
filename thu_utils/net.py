@@ -17,6 +17,9 @@ class Net(object):
         self._base = 'http://net.tsinghua.edu.cn/'
         self._login_url = self._base + 'do_login.php'
 
+    def __del__(self):
+        self._session.close()
+
     def show(self):
         req = self._session.post(self._login_url, {'action':'check_online'})
         print(req.text)
@@ -44,3 +47,4 @@ class Net(object):
         data = {'action': 'logout'}
         req = self._session.post(self._login_url, data)
         return req.text
+

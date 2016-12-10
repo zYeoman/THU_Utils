@@ -17,6 +17,9 @@ class Usereg(object):
         self._base = 'https://usereg.tsinghua.edu.cn/'
         self._login_url = self._base + 'do.php'
 
+    def __del__(self):
+        self._session.close()
+
     def login(self, user=None):
         if user is None:
             user = self._user
