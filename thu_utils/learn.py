@@ -461,14 +461,3 @@ class Message:
             self._details = _details
         return self._details
 
-
-def test():
-    pass
-
-
-def main():
-    test()
-
-
-if __name__ == '__main__':
-    main()

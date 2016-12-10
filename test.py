@@ -1,23 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""Test thu_utils
+
+usage:
+    python -m unittest test.py
+    python -m unittest test.TestTHU.testuser
+"""
 
 import unittest
 
 import thu_utils
 
-class TestTHU(unittest.TestCase):
 
+class TestTHU(unittest.TestCase):
     """Unittest for thu_utils"""
 
     def test_user(self):
-        thu_utils.user.input = lambda _:'test'
-        thu_utils.user.getpass.getpass = lambda :'test'
+        """test User"""
+        thu_utils.user.input = lambda _: 'test'
+        thu_utils.user.getpass.getpass = lambda: 'test'
         user = thu_utils.User('.test_thu')
         self.assertEqual(user.username, b'test')
         self.assertEqual(user.password, b'test')
         user.del_user()
 
     def test_net(self):
+        """test Net"""
         net = thu_utils.Net()
         net.logout()
         self.assertEqual(net.login(), 'Login is successful.')
@@ -28,8 +36,12 @@ class TestTHU(unittest.TestCase):
         net.show()
 
     def test_learn(self):
+        """test Learn"""
+        # TODO: test learn
         pass
 
     def test_usereg(self):
+        """test Usereg"""
+        # TODO: test Usereg
         usereg = thu_utils.Usereg()
         usereg.show()

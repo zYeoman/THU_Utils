@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""User
+Load and store userinfo.
+
+Default save user info(username and password) at ~/.thu
+"""
 
 import os
 import os.path
@@ -11,11 +16,8 @@ class User(object):
     """Contain username and password."""
 
     def __init__(self, path='.thu'):
-        """
-        init User
-
-        :path: where to store username and password.
-
+        """init User
+        :param path: where to store username and password.
         """
         self._path = path
         home = os.path.expanduser('~')
@@ -27,15 +29,24 @@ class User(object):
             self._data = self._load()
 
     def _load(self):
+        """load user info from self._filename
+        :return: userinfo dict{username,password}
+        """
         with open(self._filename, 'rb') as file:
             return pickle.load(file)
 
     def _store(self):
+        """store user info to self._filename
+        :return: None
+        """
         with open(self._filename, 'wb') as file:
             pickle.dump(self._data, file)
         os.chmod(self._filename, 0o600)
 
     def set_user(self):
+        """init set user info
+        :return: None
+        """
         username = input('Username: ').encode()
         password = getpass.getpass().encode()
         self._data['username'] = username
@@ -43,16 +54,27 @@ class User(object):
         self._store()
 
     def del_user(self):
-        # TODO: Test on linux
+        """delete userinfo file
+        :return: None
+        """
         os.remove(self._filename)
 
     @property
     def username(self):
+        """username
+        :return: username bytes
+        """
         return self._data['username']
 
     @property
     def password(self):
+        """password
+        :return: password bytes
+        """
         return self._data['password']
 
     def show(self):
+        """show username
+        :return: None
+        """
         print(self._data['username'].decode())
