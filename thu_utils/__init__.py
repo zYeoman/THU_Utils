@@ -11,3 +11,4 @@ __license__ = "GPLv3"
 from .user import User
 from .net import Net
 from .learn import Semester
+from .usereg import Usereg

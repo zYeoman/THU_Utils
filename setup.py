@@ -15,7 +15,9 @@ setup(
     package     = find_packages(),
     install_requires = [
         'lxml',
-        'bs4'
+        'bs4',
+        'prettytable',
+        'requests'
     ],
 )
 

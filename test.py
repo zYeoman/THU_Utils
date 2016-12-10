@@ -28,4 +28,8 @@ class TestTHU(unittest.TestCase):
         net.show()
 
     def test_learn(self):
-        learn = thu_utils.Learn()
+        pass
+
+    def test_usereg(self):
+        usereg = thu_utils.Usereg()
+        usereg.show()
