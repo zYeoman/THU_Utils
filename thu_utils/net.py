@@ -19,12 +19,10 @@ class Net(object):
 
     def show(self):
         req = self._session.post(self._login_url, {'action':'check_online'})
-        req_content = req.content
-        print(req_content.decode())
-        if req_content != b'not_online':
+        print(req.text)
+        if req.text != 'not_online':
             req = self._session.post(self._base + 'rad_user_info.php')
-            req_content = req.content
-            info = req_content.decode().split(',')
+            info = req.text.split(',')
             traffic = int(info[6])/1000000000
             timelen = int(info[2]) - int(info[1])
             timelen_str = '{}:{}:{}'.format(timelen//3600,timelen//60%60,timelen%60)
@@ -40,9 +38,9 @@ class Net(object):
             'ac_id': 1
         }
         req = self._session.post(self._login_url, data)
-        return req.content.decode()
+        return req.text
 
     def logout(self):
         data = {'action': 'logout'}
         req = self._session.post(self._login_url, data)
-        return req.content.decode()
+        return req.text
