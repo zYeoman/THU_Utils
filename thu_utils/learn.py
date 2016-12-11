@@ -104,6 +104,7 @@ class Semester:
             else:
                 # !!important!! ignore the new
                 # WebLearning Courses At This moment
+                # TODO: new learn.cic.tsinghua.edu.cn
                 continue
             nu = (int(x.contents[0])
                   for x in j.find_all('span', class_='red_text'))
@@ -120,7 +121,6 @@ class Course:
     """
 
     def __init__(self, id, url=None, name=None, nu=None):
-        pass
         self._id = id
         self._url = url
         self._name = name
@@ -207,23 +207,6 @@ class Course:
             yield Message(title=title, url=url, date=date, id=id)
 
     @property
-    def all_messages(self):
-        """
-        get all messages in course
-        :return: Message generator
-        """
-        url = _URL_BASE + _PREF_MSG + self.id
-        soup = get_url(url)
-        for m in soup.find_all('tr', class_=['tr1', 'tr2']):
-            tds = m.find_all('td')
-            title = tds[1].contents[1].text.replace(u'\xa0', u' ')
-            url = _URL_BASE + '/public/bbs/' + \
-                tds[1].contents[1]['href']
-            id = re.search(r"id=(\d+)", url).group(1)
-            date = datetime.strptime(tds[3].text, '%Y-%m-%d')
-            yield Message(title=title, url=url, date=date, id=id)
-
-    @property
     def files(self):
         """
         get all files in course
@@ -243,8 +226,6 @@ class Course:
         soup = get_url(url)
         for j in soup.find_all('tr', class_=['tr1', 'tr2']):
             tds = j.find_all('td')
-            if not tds[-1].contents:
-                continue
             name = re.search(
                 r'getfilelink=([^&]+)&',
                 str(j.find(text=lambda text: isinstance(text,
@@ -255,38 +236,6 @@ class Course:
             size = file_size_M(tds[-3].text)
             title = tds[-5].a.text.strip() + name[-4:]
             yield File(size=size, name=name, url=url, title=title)
-
-    @property
-    def all_files(self):
-        """
-        get all files in course
-        :return: File generator
-        """
-
-        def file_size_M(s):
-            digitals = s[:-1]
-            if s.endswith('K'):
-                return float(digitals) / 1024
-            elif s.endswith('M'):
-                return float(digitals)
-            else:
-                return 1024 * float(digitals)
-
-        url = _URL_BASE + _PREF_FILES + self.id
-        soup = get_url(url)
-        for j in soup.find_all('tr', class_=['tr1', 'tr2']):
-            tds = j.find_all('td')
-            name = re.search(
-                r'getfilelink=([^&]+)&',
-                str(j.find(text=lambda text: isinstance(text,
-                                                        Comment)))).group(1)
-            url = 'http://learn.tsinghua.edu.cn/kejian/data/%s/download/%s' % (
-                self.id, name)
-            name = re.sub(r'_[^_]+\.', '.', name)
-            size = file_size_M(tds[-3].text)
-            title = tds[-5].a.text.strip() + name[-4:]
-            yield File(size=size, name=name, url=url, title=title)
-
 
 class Work:
     """
