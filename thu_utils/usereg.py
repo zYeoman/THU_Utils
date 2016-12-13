@@ -33,14 +33,14 @@ class Usereg(THUBase):
     def login(self, user=None):
         """login usereg.tsinghua.edu.cn
         :param user: User info
-        :return: reponse text
+        :return: response text
         """
         if user is None:
             user = self._user
         data = {
             'action': 'login',
-            'user_login_name': self._user.username,
-            'user_password': md5(self._user.password).hexdigest(),
+            'user_login_name': user.username,
+            'user_password': md5(user.password).hexdigest(),
         }
         req = self._session.post(self._login_url, data)
         return req.text
