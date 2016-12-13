@@ -26,6 +26,7 @@ class Net(object):
         self._session = requests.session()
         self._base = 'http://net.tsinghua.edu.cn/'
         self._login_url = self._base + 'do_login.php'
+        self._text = ''
 
     def __del__(self):
         """uninit Net
@@ -34,11 +35,16 @@ class Net(object):
         self._session.close()
 
     def show(self):
+        print(self._text)
+        self._text = ''
+        return self
+
+    def info(self):
         """show net.tsinghua.edu.cn info
-        :return: None
+        :return: self
         """
         req = self._session.post(self._login_url, {'action': 'check_online'})
-        print(req.text)
+        self._text = req.text
         if req.text != 'not_online':
             req = self._session.post(self._base + 'rad_user_info.php')
             info = req.text.split(',')
@@ -48,12 +54,13 @@ class Net(object):
                                             60, timelen % 60)
             info_str = 'NetUsage(ip={0[8]},user={0[0]},traffic={1:.2f}GB,timelen={2})'
             info_str = info_str.format(info, traffic, timelen_str)
-            print(info_str)
+            self._text += '\n' + info_str
+        return self
 
     def login(self, user=None):
         """login net.tsinghua.edu.cn
         :param user: User info
-        :return: response text
+        :return: self
         """
         if user is None:
             user = self._user
@@ -64,7 +71,8 @@ class Net(object):
             'ac_id': 1
         }
         req = self._session.post(self._login_url, data)
-        return req.text
+        self._text = req.text
+        return self
 
     def logout(self):
         """logout net.tsinghua.edu.cn
@@ -72,4 +80,5 @@ class Net(object):
         """
         data = {'action': 'logout'}
         req = self._session.post(self._login_url, data)
-        return req.text
+        self._text = req.text
+        return self
