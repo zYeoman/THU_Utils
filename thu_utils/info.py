@@ -12,26 +12,20 @@ methods:
 import requests
 
 from .user import User
+from .base import THUBase
 
 
-class Info(object):
+class Info(THUBase):
     """Info for info.tsinghua.edu.cn"""
 
     def __init__(self, user=None):
         """init Info
         :param user: User info
         """
-        self._user = user if user is not None else User()
-        self._session = requests.session()
+        super(Info, self).__init__(user)
         self._base = 'http://info.tsinghua.edu.cn/'
         self._login_url = self._base + 'Login'
         self._logout_url = self._base + 'prelogout.jsp'
-
-    def __del__(self):
-        """uninit Info
-        close socket session
-        """
-        self._session.close()
 
     def login(self, user=None):
         """login info.tsinghua.edu.cn

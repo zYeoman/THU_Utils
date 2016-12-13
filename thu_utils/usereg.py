@@ -16,25 +16,19 @@ from bs4 import BeautifulSoup
 import requests
 
 from .user import User
+from .base import THUBase
 
 
-class Usereg(object):
+class Usereg(THUBase):
     """Usereg for usereg.tsinghua.edu.cn"""
 
     def __init__(self, user=None):
         """init Usereg
         :param user: User info
         """
-        self._user = user if user is not None else User()
-        self._session = requests.session()
+        super(Usereg, self).__init__(user)
         self._base = 'https://usereg.tsinghua.edu.cn/'
         self._login_url = self._base + 'do.php'
-
-    def __del__(self):
-        """uninit Usereg
-        close socket session
-        """
-        self._session.close()
 
     def login(self, user=None):
         """login usereg.tsinghua.edu.cn

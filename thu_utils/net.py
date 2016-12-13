@@ -13,25 +13,19 @@ from hashlib import md5
 import requests
 
 from .user import User
+from .base import THUBase
 
 
-class Net(object):
+class Net(THUBase):
     """Net for net.tsinghua.edu.cn"""
 
     def __init__(self, user=None):
         """init Net
         :param user: User info
         """
-        self._user = user if user is not None else User()
-        self._session = requests.session()
+        super(Net, self).__init__(user)
         self._base = 'http://net.tsinghua.edu.cn/'
         self._login_url = self._base + 'do_login.php'
-
-    def __del__(self):
-        """uninit Net
-        close socket session
-        """
-        self._session.close()
 
     def show(self):
         """show net.tsinghua.edu.cn info
