@@ -9,7 +9,7 @@ usage:
 
 import unittest
 
-import thu_utils
+from context import thu_utils
 
 
 class TestTHU(unittest.TestCase):
@@ -45,3 +45,6 @@ class TestTHU(unittest.TestCase):
         # TODO: test Usereg
         usereg = thu_utils.Usereg()
         usereg.show()
+
+if __name__ == "__main__":
+    unittest.main()
