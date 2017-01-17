@@ -17,7 +17,4 @@ clean:
 	rm -rf build/
 	rm -rf dist/
 	rm -rf thu_utils.egg-info/
-	rm -rf __pycache__/
-	rm -rf thu_utils/__pycache__/
-	rm -rf tests/__pycache__/
-	rm -rf scripts/__pycache__/
+	find . \( -name \*.pyc -o -name \*.pyo -o -name __pycache__ \) -delete
