@@ -1,6 +1,14 @@
 # THU_Utils
 Tools for thu students
 
+## Feature
+* learn.tsinghua.edu.cn: Semester, Course, Homework, Files, Notification 
+* learn.cic.tsinghua.edu.cn: ?
+* info.tsinghua.edu.cn
+* its.tsinghua.edu.cn
+* net.tsinghua.edu.cn
+* usereg.tsinghua.edu.cn
+
 ## Usage
 ```
 make
