@@ -2,7 +2,7 @@
 Tools for thu students
 
 ## Feature
-* learn.tsinghua.edu.cn: Semester, Course, Homework, Files, Notification 
+* learn.tsinghua.edu.cn: Semester, Course, Homework, Files, Notification
 * learn.cic.tsinghua.edu.cn: ?
 * info.tsinghua.edu.cn
 * its.tsinghua.edu.cn
@@ -14,6 +14,9 @@ Tools for thu students
 make
 make install
 ```
+
+## TODO
+* 登录失败时重新设置用户名密码
 
 ## Test
 ```
