@@ -10,9 +10,7 @@ methods:
 """
 
 from hashlib import md5
-import requests
 
-from .user import User
 from .base import THUBase
 
 
@@ -40,21 +38,19 @@ class Net(THUBase):
             timelen = int(info[2]) - int(info[1])
             timelen_str = '{}:{}:{}'.format(timelen // 3600, timelen // 60 %
                                             60, timelen % 60)
-            info_str = 'NetUsage(ip={0[8]},user={0[0]},traffic={1:.2f}GB,timelen={2})'
+            info_str = 'ip={0[8]},user={0[0]},traffic={1:.2f}GB,timelen={2}'
             info_str = info_str.format(info, traffic, timelen_str)
             print(info_str)
 
-    def login(self, user=None):
+    def login(self):
         """login net.tsinghua.edu.cn
         :param user: User info
         :return: response text
         """
-        if user is None:
-            user = self._user
         data = {
             'action': 'login',
-            'username': user.username,
-            'password': '{MD5_HEX}' + md5(user.password).hexdigest(),
+            'username': self._user.username,
+            'password': '{MD5_HEX}' + md5(self._user.password).hexdigest(),
             'ac_id': 1
         }
         req = self._session.post(self._login_url, data)
