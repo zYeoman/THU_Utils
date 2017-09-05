@@ -9,9 +9,6 @@ methods:
     show: Show
 """
 
-import requests
-
-from .user import User
 from .base import THUBase
 
 
@@ -28,16 +25,13 @@ class Its(THUBase):
         self._logout_url = self._base + 'logout'
         self._columns = ['czxt', 'fbdrj', 'kfrj', 'bgrj', 'jsrj']
 
-    def login(self, user=None):
+    def login(self):
         """login its.tsinghua.edu.cn
-        :param user: User info
         :return: response text
         """
-        if user is None:
-            user = self._user
         data = {
-            'username': user.username,
-            'password': user.password
+            'username': self._user.username,
+            'password': self._user.password
         }
         req = self._session.post(self._login_url, data)
         return req.text

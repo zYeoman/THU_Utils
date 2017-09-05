@@ -13,9 +13,7 @@ methods:
 from hashlib import md5
 from prettytable import PrettyTable
 from bs4 import BeautifulSoup
-import requests
 
-from .user import User
 from .base import THUBase
 
 
@@ -30,17 +28,15 @@ class Usereg(THUBase):
         self._base = 'https://usereg.tsinghua.edu.cn/'
         self._login_url = self._base + 'do.php'
 
-    def login(self, user=None):
+    def login(self):
         """login usereg.tsinghua.edu.cn
         :param user: User info
         :return: response text
         """
-        if user is None:
-            user = self._user
         data = {
             'action': 'login',
-            'user_login_name': user.username,
-            'user_password': md5(user.password).hexdigest(),
+            'user_login_name': self._user.username,
+            'user_password': md5(self._user.password).hexdigest(),
         }
         req = self._session.post(self._login_url, data)
         return req.text

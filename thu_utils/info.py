@@ -9,9 +9,6 @@ methods:
     show: Show
 """
 
-import requests
-
-from .user import User
 from .base import THUBase
 
 
@@ -27,17 +24,15 @@ class Info(THUBase):
         self._login_url = self._base + 'Login'
         self._logout_url = self._base + 'prelogout.jsp'
 
-    def login(self, user=None):
+    def login(self):
         """login info.tsinghua.edu.cn
         :param user: User info
         :return: response text
         """
-        if user is None:
-            user = self._user
         data = {
             'redirect': 'NO',
-            'userName': user.username,
-            'password': user.password,
+            'userName': self._user.username,
+            'password': self._user.password,
             'x': '31',
             'y': '11'
         }
