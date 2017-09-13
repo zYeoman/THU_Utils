@@ -15,6 +15,7 @@ from prettytable import PrettyTable
 from bs4 import BeautifulSoup
 
 from .base import THUBase
+from .logger import LOG
 
 
 class Usereg(THUBase):
@@ -39,6 +40,7 @@ class Usereg(THUBase):
             'user_password': md5(self._user.password).hexdigest(),
         }
         req = self._session.post(self._login_url, data)
+        LOG.info(req.text)
         return req.text
 
     def logout(self):
@@ -47,6 +49,7 @@ class Usereg(THUBase):
         """
         data = {'action': 'logout'}
         req = self._session.post(self._login_url, data)
+        LOG.info(req.text)
         return req.text
 
     @property

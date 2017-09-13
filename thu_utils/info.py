@@ -10,6 +10,7 @@ methods:
 """
 
 from .base import THUBase
+from .logger import LOG
 
 
 class Info(THUBase):
@@ -37,6 +38,7 @@ class Info(THUBase):
             'y': '11'
         }
         req = self._session.post(self._login_url, data)
+        LOG.info(req.text)
         return req.text
 
     def logout(self):
@@ -44,4 +46,5 @@ class Info(THUBase):
         :return: response text
         """
         req = self._session.get(self._logout_url)
+        LOG.info(req.text)
         return req.text
