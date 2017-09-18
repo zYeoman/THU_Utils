@@ -15,10 +15,11 @@ import getpass
 class User(object):
     """Contain username and password."""
 
-    def __init__(self, path='.thu'):
+    def __init__(self, path='.thu', hint='input thu user info'):
         """init User
         :param path: where to store username and password.
         """
+        self._hint = hint
         self._path = path
         home = os.path.expanduser('~')
         self._filename = os.path.join(home, self._path)
@@ -47,6 +48,7 @@ class User(object):
         """init set user info
         :return: None
         """
+        print(hint)
         username = input('Username: ').encode()
         password = getpass.getpass().encode()
         self._data['username'] = username
