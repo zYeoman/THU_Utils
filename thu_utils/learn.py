@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup, Comment
 
 from .user import User
+from .logger import LOG
 
 # global vars
 _session = requests.session()
@@ -46,6 +47,7 @@ def login():
     )
     r = _session.post(_URL_BASE + _URL_LOGIN, data)
     # 即使登录失败也是200所以根据返回内容简单区分了
+    LOG.debug(r.text)
     if len(r.content) > 120:
         return False
     else:
@@ -61,6 +63,7 @@ def get_url(url):
     r = _session.get(url)
     r.encoding = 'utf-8'
     soup = BeautifulSoup(r.content, "html.parser")
+    LOG.debug('GET url: ' + url + ' Status: %d' % r.status_code)
     return soup
 
 
@@ -237,6 +240,7 @@ class Course:
             title = tds[-5].a.text.strip() + name[-4:]
             yield File(size=size, name=name, url=url, title=title)
 
+
 class Work:
     """
     the homework class
@@ -409,4 +413,3 @@ class Message:
             _details = re.sub('\n+', '\n', _details)
             self._details = _details
         return self._details
-
