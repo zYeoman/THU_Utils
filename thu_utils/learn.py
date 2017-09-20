@@ -50,8 +50,7 @@ def login():
     LOG.debug(r.text)
     if len(r.content) > 120:
         return False
-    else:
-        return True
+    return True
 
 
 def get_url(url):
@@ -65,6 +64,16 @@ def get_url(url):
     soup = BeautifulSoup(r.content, "html.parser")
     LOG.debug('GET url: ' + url + ' Status: %d' % r.status_code)
     return soup
+
+
+class LearnBase(dict):
+
+    """ 实现键值与属性同步的基础类 """
+
+    def __init__(self, *args, **kwargs):
+        """ 来自https://goo.gl/DTygYW """
+        super(LearnBase, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
 
 class Semester:
@@ -109,40 +118,25 @@ class Semester:
                 # WebLearning Courses At This moment
                 # TODO: new learn.cic.tsinghua.edu.cn
                 continue
-            nu = (int(x.contents[0])
-                  for x in j.find_all('span', class_='red_text'))
+            num = (int(x.contents[0])
+                   for x in j.find_all('span', class_='red_text'))
             name = i.contents[0]
             name = re.sub(r'[\n\r\t ]', '', name)
             name = re.sub(r'\([^\(\)]+\)$', '', name)
             id = url[-6:]
-            yield Course(name=name, url=url, id=id, nu=nu)
+            yield Course(name=name,
+                         url=url,
+                         id=id,
+                         num=num)
 
 
-class Course:
+class Course(LearnBase):
     """
     this is the Course class
     """
 
-    def __init__(self, id, url=None, name=None, nu=None):
-        self._id = id
-        self._url = url
-        self._name = name
-        self._nu = nu
-
-    @property
-    def url(self):
-        """course url"""
-        return self._url
-
-    @property
-    def name(self):
-        """course name"""
-        return self._name
-
-    @property
-    def id(self):
-        """courses id"""
-        return self._id
+    def __init__(self, *args, **kwargs):
+        super(Course, self).__init__(*args, **kwargs)
 
     @property
     def works(self):
@@ -150,7 +144,7 @@ class Course:
         get all the work in course
         :return: Work generator
         """
-        url = _URL_BASE + _PREF_WORK + self._id
+        url = _URL_BASE + _PREF_WORK + self.get('id', '')
         soup = get_url(url)
         for i in soup.find_all('tr', class_=['tr1', 'tr2']):
             tds = i.find_all('td')
@@ -160,35 +154,15 @@ class Course:
                 i.find('a')['href']
             id = re.search(r'(\d+)', url).group(0)
             title = i.find('a').contents[0].replace(u'\xa0', u' ')
-            start_time = datetime.strptime(tds[1].contents[0], '%Y-%m-%d')
             end_time = tds[2].contents[0] + ' 23:59:59'
-            end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
-            if end_time < datetime.now():
+            date = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+            if date < datetime.now():
                 continue
-            yield Work(id=id, title=title,
-                       url=url, start_time=start_time,
-                       end_time=end_time)
-
-    @property
-    def all_works(self):
-        """
-        get all the work in course
-        :return: Work generator
-        """
-        url = _URL_BASE + _PREF_WORK + self._id
-        soup = get_url(url)
-        for i in soup.find_all('tr', class_=['tr1', 'tr2']):
-            tds = i.find_all('td')
-            url = _URL_BASE + '/lesson/student/' + \
-                i.find('a')['href']
-            id = re.search(r'(\d+)', url).group(0)
-            title = i.find('a').contents[0].replace(u'\xa0', u' ')
-            start_time = datetime.strptime(tds[1].contents[0], '%Y-%m-%d')
-            end_time = tds[2].contents[0] + ' 23:59:59'
-            end_time = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
-            yield Work(id=id, title=title,
-                       url=url, start_time=start_time,
-                       end_time=end_time)
+            yield Work(id=id,
+                       title=title,
+                       course=self.get('name', ''),
+                       url=url,
+                       date=date)
 
     @property
     def messages(self):
@@ -196,7 +170,7 @@ class Course:
         get all messages in course
         :return: Message generator
         """
-        url = _URL_BASE + _PREF_MSG + self.id
+        url = _URL_BASE + _PREF_MSG + self.get('id', '')
         soup = get_url(url)
         for m in soup.find_all('tr', class_=['tr1', 'tr2']):
             tds = m.find_all('td')
@@ -207,7 +181,11 @@ class Course:
                 tds[1].contents[1]['href']
             id = re.search(r"id=(\d+)", url).group(1)
             date = datetime.strptime(tds[3].text, '%Y-%m-%d')
-            yield Message(title=title, url=url, date=date, id=id)
+            yield Message(title=title,
+                          course=self.get('name', ''),
+                          url=url,
+                          date=date,
+                          id=id)
 
     @property
     def files(self):
@@ -222,10 +200,9 @@ class Course:
                 return float(digitals) / 1024
             elif s.endswith('M'):
                 return float(digitals)
-            else:
-                return 1024 * float(digitals)
+            return 1024 * float(digitals)
 
-        url = _URL_BASE + _PREF_FILES + self.id
+        url = _URL_BASE + _PREF_FILES + self.get('id', '')
         soup = get_url(url)
         for j in soup.find_all('tr', class_=['tr1', 'tr2']):
             tds = j.find_all('td')
@@ -234,57 +211,26 @@ class Course:
                 str(j.find(text=lambda text: isinstance(text,
                                                         Comment)))).group(1)
             url = 'http://learn.tsinghua.edu.cn/kejian/data/%s/download/%s' % (
-                self.id, name)
+                self.get('id', ''), name)
             name = re.sub(r'_[^_]+\.', '.', name)
             size = file_size_M(tds[-3].text)
             title = tds[-5].a.text.strip() + name[-4:]
-            yield File(size=size, name=name, url=url, title=title)
+            yield File(size=size,
+                       name=name,
+                       url=url,
+                       title=title,
+                       course=self.get('name', ''))
 
 
-class Work:
+class Work(LearnBase):
     """
     the homework class
     """
 
-    def __init__(self, url, id, title, start_time, end_time):
-        self._url = url
-        self._id = id
-        self._title = title
+    def __init__(self, *args, **kwargs):
+        super(Work, self).__init__(*args, **kwargs)
         self._details = None
         self._file = None
-        self._start_time = start_time
-        self._end_time = end_time
-
-    @property
-    def url(self):
-        """work url"""
-        return self._url
-
-    @property
-    def id(self):
-        """work id"""
-        return self._id
-
-    @property
-    def title(self):
-        """work title"""
-        return self._title
-
-    @property
-    def start_time(self):
-        """
-        start date of the work
-        :return:str time 'yyyy-mm-dd'
-        """
-        return self._start_time
-
-    @property
-    def end_time(self):
-        """
-        end date of the work
-        :return: str time 'yyyy-mm-dd'
-        """
-        return self._end_time
 
     @property
     def details(self):
@@ -293,7 +239,7 @@ class Work:
         :return:str details /None if not exists
         """
         if not self._details:
-            soup = get_url(self.url)
+            soup = get_url(self.get('url', ''))
             try:
                 _details = soup.find_all('td', class_='tr_2')[
                     1].textarea.contents[0]
@@ -308,105 +254,54 @@ class Work:
         the file attached to the work
         :return: Instance of File/None if not exists
         """
-        if not self._file:
-            soup = get_url(self.url)
+        if not self.get('_file', ''):
+            soup = get_url(self.get('url', ''))
             try:
                 fname = soup.find_all('td', class_='tr_2')[2].a.contents[0]
                 furl = 'http://learn.tsinghua.edu.cn' + \
                     soup.find_all('td', class_='tr_2')[2].a['href']
-                _file = File(url=furl, name=fname)
+                _file = File(url=furl,
+                             name=fname,
+                             course=self.get('course', '')
+                             )
             except AttributeError:
                 _file = None
             self._file = _file
         return self._file
 
 
-class File:
+class File(LearnBase):
 
-    def __init__(self, url, name, size=0, note=None, title=None):
-        self._name = name
-        self._url = url
-        self._note = note
-        self._size = size
-        self._title = title
+    def __init__(self, *args, **kwargs):
+        super(File, self).__init__(*args, **kwargs)
 
     def save(self, path='.'):
-        filepath = os.path.join(path, self.name)
+        filepath = os.path.join(path, self.get('name', ''))
         if os.path.isfile(filepath):
             return filepath
         if not os.path.exists(path):
             os.makedirs(path)
-        r = _session.get(self.url, stream=True)
+        r = _session.get(self.get('url', ''), stream=True)
         with open(filepath, 'wb') as handle:
             if not r.ok:
-                raise ValueError('failed in saving file', self.name, self.url)
+                raise ValueError('failed in saving file',
+                                 self.get('name', ''),
+                                 self.get('url', ''))
             for block in r.iter_content(1024):
                 handle.write(block)
         return filepath
 
-    @property
-    def name(self):
-        """file name
-        Note! the file name is the name on the web
-        but not the name in the download link
-        """
-        return self._name
 
-    @property
-    def title(self):
-        """file title
-        Note! the file title is the title on the web
-        but not the title in the download link
-        """
-        return self._title
+class Message(LearnBase):
 
-    @property
-    def url(self):
-        """download url"""
-        return self._url
-
-    @property
-    def note(self):
-        """the description of the file
-        this will exits under the CourseFile area but not in work area
-        # considering take course.details as note
-        """
-        return self._note
-
-    @property
-    def size(self):
-        return self._size
-
-
-class Message:
-
-    def __init__(self, url, title, date, id):
-        self._id = id
-        self._url = url
-        self._title = title
-        self._date = date
+    def __init__(self, *args, **kwargs):
+        super(Message, self).__init__(*args, **kwargs)
         self._details = None
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def url(self):
-        return self._url
-
-    @property
-    def title(self):
-        return self._title
-
-    @property
-    def date(self):
-        return self._date
 
     @property
     def details(self):
         if not self._details:
-            soup = get_url(self.url)
+            soup = get_url(self.get('url', ''))
             _details = soup.find_all('td', class_='tr_l2')[
                 1].text.replace('\xa0', ' ')
             _details = re.sub('(\\xa0)+', ' ', _details)
