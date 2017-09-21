@@ -135,9 +135,6 @@ class Course(LearnBase):
     this is the Course class
     """
 
-    def __init__(self, *args, **kwargs):
-        super(Course, self).__init__(*args, **kwargs)
-
     @property
     def works(self):
         """
@@ -174,8 +171,6 @@ class Course(LearnBase):
         soup = get_url(url)
         for m in soup.find_all('tr', class_=['tr1', 'tr2']):
             tds = m.find_all('td')
-            if "已读" in tds[4].contents[0]:
-                continue
             title = tds[1].contents[1].text.replace(u'\xa0', u' ')
             url = _URL_BASE + '/public/bbs/' + \
                 tds[1].contents[1]['href']
@@ -245,7 +240,7 @@ class Work(LearnBase):
                     1].textarea.contents[0]
             except:
                 _details = ""
-            self._details = _details
+            self._details = _details.replace('\r', '')
         return self._details
 
     @property
@@ -262,8 +257,7 @@ class Work(LearnBase):
                     soup.find_all('td', class_='tr_2')[2].a['href']
                 _file = File(url=furl,
                              name=fname,
-                             course=self.get('course', '')
-                             )
+                             course=self.get('course', ''))
             except AttributeError:
                 _file = None
             self._file = _file
@@ -271,9 +265,6 @@ class Work(LearnBase):
 
 
 class File(LearnBase):
-
-    def __init__(self, *args, **kwargs):
-        super(File, self).__init__(*args, **kwargs)
 
     def save(self, path='.'):
         filepath = os.path.join(path, self.get('name', ''))
@@ -306,5 +297,5 @@ class Message(LearnBase):
                 1].text.replace('\xa0', ' ')
             _details = re.sub('(\\xa0)+', ' ', _details)
             _details = re.sub('\n+', '\n', _details)
-            self._details = _details
+            self._details = _details.replace('\r', '')
         return self._details
