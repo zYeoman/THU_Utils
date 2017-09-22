@@ -16,6 +16,7 @@ Create: 2017-09-17
 """
 
 import os
+from datetime import datetime
 import owncloud
 from thu_utils import User
 from thu_utils import Semester
@@ -26,46 +27,51 @@ USER = User('.ownuser', 'Input owncloud user')
 OC = owncloud.Client('https://cloud.mickir.me')
 OC.login(USER.username, USER.password)
 
+FILE = open("tmp/Info.org", "w")
 
-def handle_work(work, course):
+
+def handle_work(work):
     """Handle work"""
-    LOG.info(course + ' Homework: ' + work.title)
-    # TODO: 下载作业文件
-    # TODO: 作业内容集合到一个文件内
-    # TODO: 内容上传到GoogleCalendar
+    LOG.info(work.course + ' Homework: ' + work.title)
+    FILE.write('** 作业：%s at ' % work.title)
+    FILE.write(datetime.strftime(work.date, '%Y-%m-%d\n'))
+    FILE.write(work.details)
+    FILE.write('\n\n')
+
+    if work.file is not None:
+        work.file.save(os.path.join('tmp', work.course))
+        send_file(work.file, '/作业/')
+    google_upload(work)
 
 
-def handle_file(file, course):
+def handle_file(file):
     """Handle file"""
     LOG.info('File: ' + file.name)
-    file.save(os.path.join('tmp', course))
-    send_file(file.name, course)
+    file.save(os.path.join('tmp', file.course))
+    send_file(file)
 
 
-def handle_message(message, course):
+def handle_message(message):
     """Handle message"""
     LOG.info('Message: ' + message.title)
-    msg = {
-        'title': course + ' ' + message.title,
-        'date': message.date,
-        'details': message.details
-    }
-    send_msg(msg)
-    # TODO: 集合信息为一个文件，可访问
-    # TODO: 上传到GoogleCalendar
+    FILE.write('** 公告：%s at ' % message.title)
+    FILE.write(datetime.strftime(message.date, '%Y-%m-%d\n'))
+    FILE.write(message.details)
+    FILE.write('\n\n')
+    google_upload(message)
 
 
-def send_msg(msg):
-    """ Send message to GoogleCalendar or print"""
-    print(msg)
+def google_upload(message):
+    """ Send message to GoogleCalendar"""
+    pass
 
 
-def send_file(filename, coursename):
+def send_file(file, path='/'):
     """ Send file to GoogleDrive or NextCloud """
-    target_path = '课程内容/' + coursename + '/'
-    local_path = 'tmp/' + coursename + '/' + filename
+    target_path = '课程内容/' + file.course + path
+    local_path = 'tmp/' + file.course + '/' + file.name
     try:
-        OC.mkdir('课程内容')
+        OC.mkdir('课程内容/' + file.course + '/')
     except owncloud.HTTPResponseError:
         pass
     try:
@@ -73,24 +79,32 @@ def send_file(filename, coursename):
     except owncloud.HTTPResponseError:
         pass
 
-    LOG.info('Upload ' + coursename + ' ' + filename)
-    OC.put_file(target_path + filename, local_path)
+    OC.put_file(target_path + file.name, local_path)
+    LOG.info('Upload ' + file.course + ' ' + file.name)
 
 
 def main():
     """main function"""
     semester = Semester()
+    try:
+        OC.mkdir('课程内容')
+    except owncloud.HTTPResponseError:
+        pass
     for course in semester.courses:
         LOG.info('Get course: ' + course.name)
+        FILE.write('* %s\n\n' % course.name)
 
         for work in course.works:
-            handle_work(work, course.name)
+            handle_work(work)
 
         for message in course.messages:
-            handle_message(message, course.name)
+            handle_message(message)
 
         for file in course.files:
-            handle_file(file, course.name)
+            handle_file(file)
+
+    FILE.close()
+    OC.put_file('课程内容/Info.org', 'tmp/Info.org')
 
 
 if __name__ == "__main__":
