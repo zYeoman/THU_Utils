@@ -91,7 +91,7 @@ def main():
     except owncloud.HTTPResponseError:
         pass
     for course in semester.courses:
-        LOG.info('Get course: ' + course.name)
+        LOG.info('Course: ' + course.name)
         FILE.write('* %s\n\n' % course.name)
 
         for work in course.works:
