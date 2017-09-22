@@ -16,7 +16,7 @@ make install
 ```
 
 ## TODO
-* 登录失败时重新设置用户名密码
+* learn_download.py 上传文件、作业信息到 GoogleCalendar
 
 ## Test
 ```
