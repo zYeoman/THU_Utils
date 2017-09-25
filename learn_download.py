@@ -46,9 +46,10 @@ def handle_work(work):
 
 def handle_file(file):
     """Handle file"""
-    LOG.info('File: ' + file.name)
-    file.save(os.path.join('tmp', file.course))
-    send_file(file)
+    if not os.path.isfile(os.path.join('tmp', file.course, file.name)):
+        LOG.info('File: ' + file.name)
+        file.save(os.path.join('tmp', file.course))
+        send_file(file)
 
 
 def handle_message(message):
