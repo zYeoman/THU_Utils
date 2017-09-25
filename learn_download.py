@@ -27,38 +27,40 @@ USER = User('.ownuser', 'Input owncloud user')
 OC = owncloud.Client('https://cloud.mickir.me')
 OC.login(USER.username, USER.password)
 
-FILE = open("tmp/Info.org", "w")
+TIMEFMT = 'DEADLINE: <%Y-%m-%d %a %H:%M>'
+LWORK = ['* 作业']
+LMSG = ['* 公告']
 
 
 def handle_work(work):
     """Handle work"""
     LOG.info(work.course + ' Homework: ' + work.title)
-    FILE.write('** 作业：%s at ' % work.title)
-    FILE.write(datetime.strftime(work.date, '%Y-%m-%d\n'))
-    FILE.write(work.details)
-    FILE.write('\n\n')
+    LWORK.append('** %s：%s ' % (work.course, work.title))
+    LWORK.append(datetime.strftime(work.date, TIMEFMT))
+    LWORK.append(work.details)
 
     if work.file is not None:
-        work.file.save(os.path.join('tmp', work.course))
-        send_file(work.file, '/作业/')
+        LWORK.append('FILE: %s' % work.file.name)
+        if work.file.save(os.path.join('tmp', work.course)):
+            LOG.info('Homework file: ' + work.file.name)
+            send_file(work.file, '/作业/')
+    LWORK.append('\n')
     google_upload(work)
 
 
 def handle_file(file):
     """Handle file"""
-    if not os.path.isfile(os.path.join('tmp', file.course, file.name)):
+    if file.save(os.path.join('tmp', file.course)):
         LOG.info('File: ' + file.name)
-        file.save(os.path.join('tmp', file.course))
         send_file(file)
 
 
 def handle_message(message):
     """Handle message"""
     LOG.info('Message: ' + message.title)
-    FILE.write('** 公告：%s at ' % message.title)
-    FILE.write(datetime.strftime(message.date, '%Y-%m-%d\n'))
-    FILE.write(message.details)
-    FILE.write('\n\n')
+    LMSG.append('** %s：%s ' % (message.course, message.title))
+    LMSG.append(datetime.strftime(message.date, '%Y-%m-%d'))
+    LMSG.append(message.details)
     google_upload(message)
 
 
@@ -91,9 +93,9 @@ def main():
         OC.mkdir('课程内容')
     except owncloud.HTTPResponseError:
         pass
+    info = open("tmp/Info.org", "w")
     for course in semester.courses:
         LOG.info('Course: ' + course.name)
-        FILE.write('* %s\n\n' % course.name)
 
         for work in course.works:
             handle_work(work)
@@ -104,8 +106,11 @@ def main():
         for file in course.files:
             handle_file(file)
 
-    FILE.close()
-    OC.put_file('课程内容/Info.org', 'tmp/Info.org')
+    info.write('\n'.join(LWORK))
+    info.write('\n\n')
+    info.write('\n'.join(LMSG))
+    info.close()
+    OC.put_file('课程内容/笔记/Info.org', 'tmp/Info.org')
 
 
 if __name__ == "__main__":
