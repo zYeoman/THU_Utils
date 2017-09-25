@@ -261,7 +261,7 @@ class File(LearnBase):
         """ Save this file to path """
         filepath = os.path.join(path, self.get('name', ''))
         if os.path.isfile(filepath):
-            return filepath
+            return False
         if not os.path.exists(path):
             os.makedirs(path)
         req = _SESSION.get(self.get('url', ''), stream=True)
