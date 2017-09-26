@@ -8,6 +8,7 @@ Learn.tsinghua.edu.cn
 
 import re
 import os
+import time
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup, Comment
@@ -223,6 +224,9 @@ class Course(LearnBase):
         if self.get('new', False):
             url = _URL_BASE_NEW + _PREF_FILES_NEW + self.get('id', '') + '/0'
             json = _SESSION_NEW.post(url).json()
+            url = _URL_BASE_NEW + \
+                "/b/courseFileAccess/markStatusforYiDu/" + self.get('id', '')
+            _SESSION_NEW.post(url).json()
             for courseware_tree in json['resultList'].values():
                 for second_node in courseware_tree['childMapData'].values():
                     for third_node in second_node['courseCoursewareList']:
@@ -244,8 +248,10 @@ class Course(LearnBase):
                     r'getfilelink=([^&]+)&',
                     str(j.find(text=lambda text: isinstance(
                         text, Comment)))).group(1)
-                url = _URL_BASE + '/kejian/data/%s/download/%s' % (
-                    self.get('id', ''), name)
+                # 使下载后可以把新文件标签去掉
+                # url = _URL_BASE + '/kejian/data/%s/download/%s' % (
+                #     self.get('id', ''), name)
+                url = _URL_BASE + tds[-5].a['href']
                 name = re.sub(r'_[^_]+\.', '.', name)
                 size = file_size_m(tds[-3].text)
                 title = tds[-5].a.text.strip() + name[-4:]
