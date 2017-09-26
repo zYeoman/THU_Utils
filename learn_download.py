@@ -34,7 +34,7 @@ LMSG = ['* 公告']
 
 def handle_work(work):
     """Handle work"""
-    LOG.info(work.course + ' Homework: ' + work.title)
+    LOG.info('Homework: ' + work.title)
     LWORK.append('** %s：%s ' % (work.course, work.title))
     LWORK.append(datetime.strftime(work.date, TIMEFMT))
     LWORK.append(work.details)
