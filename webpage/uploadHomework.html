@@ -1,0 +1,259 @@
+
+
+
+<link href="/css/common.css" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="javascript">
+var str1,str2,filename;
+
+ function submitcheck()
+{
+	if(1==0){
+		alert("现在已经超过了提交作业的截止时间。请与任课教师联系。");
+	  return false;
+	}
+	if(F1.post_rec_homewk_detail.value.length > 2000){
+		alert("提交作业内容不可超过2000字");
+	  return false;
+	}
+	if(F1.upfile.value == ""){
+			F1.action = "/MultiLanguage/lesson/student/hom_wk_handin.jsp";
+			F1.encoding = "";
+	}else{
+			F1.action = "/uploadFile/uploadFile.jsp";
+			F1.encoding = "multipart/form-data";
+			if (!confirm("注意：系统仅保留最后一次提交的作业附件。"))
+			    return false;
+	}
+
+  	str1 = F1.upfile.value;
+  	filename = str1.substring(str1.lastIndexOf("\\")+1);
+  	filename = filename.substring(filename.lastIndexOf("\/")+1);
+  	if(filename.indexOf(" ") > 0)
+	{
+	alert("上载文件名中不能有空格");
+	return false;
+	}
+}
+
+function form_submit(ci)
+{
+	if(F1.upfile.value =="")
+  {
+		document.F1.submit();
+  	return false;
+  }
+  else {
+  	var str1 = F1.upfile.value;
+  	var filename = str1.substring(str1.lastIndexOf("\\")+1);
+  	filename =filename.substring(filename.lastIndexOf("\/")+1);
+  	var rand = Math.round(10000*Math.random())+'0'+Math.round(10000*Math.random());
+    F1.post_homewk_link.value =F1.newfilename.value + rand+"_" + filename;
+    F1.filename.value = F1.newfilename.value+ rand+"_" + filename;
+		if(!checkExt(filename))return false;
+			//begin upload
+			uploadBegin();
+			return true;
+		}
+}
+function uploadBegin(){
+	theFeats = "height=200,width=320,location=no,menubar=no,resizable=no,scrollbars=no,status=no,toolbar=no";
+	strAppVersion = navigator.appVersion;
+	if (F1.upfile.value != "")
+	{
+	    if (strAppVersion.indexOf('MSIE') != -1 && strAppVersion.substr(strAppVersion.indexOf('MSIE')+5,1) > 4)
+	    {
+			winstyle = "dialogWidth=320px; dialogHeight:200px; center:yes";
+			window.showModelessDialog("/uploadFile/progressbar.jsp",window,winstyle);
+	    }
+	}
+}
+function StartUpload(ci)
+{
+   div_inline.style.display = "";
+   resizeModal();
+   // Add a resize handler for the window
+   window.onresize = resizeModal;
+   self.transfer.document.location = '/cgi-bin/ooao/upload_status.cgi?upload_id='+ci+'&num_files=1&css_name='+document.F1.css_name.value+'&tmpl_name='+document.F1.tmpl_name.value,'win1','width=320,height=240,resizable=1';
+   //alert(self.transfer.document.location);
+}
+function check_file_unique(cid)
+{
+	str1 = F1.upfile.value;
+	filename = str1.substring(str1.lastIndexOf("\\")+1);
+	filename = filename.substring(filename.lastIndexOf("\/")+1);
+	send_request("get","/cgi-bin/ooao/checkfile.cgi?upload_id="+cid+"&filename="+filename+"&u_type=homewkrec",null,"text",callback);
+}
+
+function callback()
+{
+	if (http_request.readyState == 4) { // 判断对象状态
+		if (http_request.status == 200) { // 信息已经成功返回，开始处理信息
+			var rtext = http_request.responseText;
+			if((parseInt(rtext)) == 0){
+				alert("上传的文件已存在，请选择其他本地文件或修改本地文件的文件名!");
+				F1.upfile.outerHTML=F1.upfile.outerHTML.replace(/(value=\").+\"/i,"$1\"");
+			}
+			F1.file_unique_flag.value = rtext;
+		} else { //页面不正常
+			alert("您所请求的页面有异常!");
+		}
+	}
+}
+
+function check_del(file_id,backurl,filepath,course_id){
+  if (confirm("真的要删除这个文件吗？")) {
+   document.location.replace("/uploadFile/delFile_kczy.jsp?file_id="+escape(file_id)+"&backurl="+escape(backurl)+"&filepath="+escape(filepath)+"&course_id="+escape(course_id));
+  }
+}
+
+</script>
+<html>
+<head>
+<title>提交作业</title>
+<link href="/images/new/WLXT.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" src="/public/ooao_utility.js"></script>
+<script language="JavaScript" type="text/JavaScript">
+<!--
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+function go_back1(temp)
+{
+      document.location.replace(temp);
+}
+//-->
+</script>
+<link href="/images/new/xxx.css" rel="stylesheet" type="text/css">
+</head>
+<body onLoad="MM_preloadImages('images/Users_2.jpg')">
+<table cellpadding="0" cellspacing="0" id="info_1">
+	<tr>
+	  <td class="info_title"><img src="/img/info_title.gif" />&nbsp;英语（第一外国语）
+</td>
+	</tr>
+	<tr>
+	  <td class="info_x"></td>
+	</tr>
+  <tr>
+    <td valign="top">
+    <div id="Layer1" style="position:absolute; left:19px; top:50px; width:100%; height:390px; z-index:1; overflow: auto;overflow-x:hidden">
+     <FORM id="F1" name="F1"  action="" method="post" onsubmit="return form_submit(149640)">
+      <input type="hidden" name="saveDir" value="149640/homewkrec/">
+      <input type="hidden" name="filename">
+      <input type="hidden" name="old_filename" value="/149640/homewkrec/2017210699_777183_569101683_HW1_Beijing.docx">
+      <input type="hidden" name="errorURL" value="/uperror.jsp?error=">
+      <input type="hidden" name="returnURL" value="/win_close.jsp">
+      <input type="hidden" name="newfilename" value="2017210699_777183_">
+      <input type="hidden" name="post_id" id="post_id" value="777183">
+      <input type="hidden" name="post_rec_id" id="post_rec_id" value="5227453">
+      <input type="hidden" name="post_homewk_link" value="2017210699_777183_569101683_HW1_Beijing.docx">
+      <input type="hidden" name="file_unique_flag" value='0'>
+      <input type="hidden" name="url_post" value="/MultiLanguage/lesson/student/hom_wk_handin.jsp">
+      <input type="hidden" name="css_name" value="">
+		  <input type="hidden" name="tmpl_name" value="">
+		  <input type="hidden" name="course_id" value="149640">
+		  <input type="hidden" name="module_id" value="325">
+			<table id="table_box" cellspacing="1" cellpadding="0" width="100%">
+				<tr>
+				<td width="15%" height="25" class="title">作业题目</td>
+				<td class="tr_1">&nbsp;Beijing </td>
+			  </tr>
+			  <tr>
+				<td height="60" class="title"> 提交作业<br>（限2000字以内）
+					<br><span style="font: 10pt 宋体; color: black">注：如果在线编辑时间超过5分钟，建议先在本地写好，然后粘贴过来，以免由于超时而造成内容丢失</span>
+				</td>
+				<td class="tr_1">
+					<textarea cols=55 name="post_rec_homewk_detail" id="post_rec_homewk_detail" rows="8" style="width:650px"  wrap=VIRTUAL></textarea>
+				</td>
+			  </tr>
+			  <tr>
+				<td height="25" class="title">上交作业附件</td>
+				<td align="left"><input id="upfile" name="upfile"  type=file class=inputbutton size=40>
+				</td>
+			  </tr>
+			  <tr>
+				<td height="25" class="title">己上交作业附件</td>
+				<td class="tr_1">&nbsp;
+
+	<a target="_top" href="/uploadFile/downloadFile.jsp?module_id=322&course_id=149640&filePath=asHg87DbDsrhMAEd9f7m40a7Jp2ZYEz7dWNOpncshD2d5XbbxZr0kxoyK/nOGHDP3UcR4Y3tzZM6rwA3WkmE4H2jxcvYjcn%2BLmt%2B7NiIzxw%3D">HW1_Beijing.docx</a>
+	&nbsp;&nbsp;<input onclick='check_del("777183","/MultiLanguage/lesson/student/hom_wk_brw.jsp","/149640/homewkrec/2017210699_777183_569101683_HW1_Beijing.docx","149640")' type=button value="删除"  class="blue"/>
+
+				</td>
+			  </tr>
+			  <tr class="text_nr2">
+			    <td colspan="2">
+			    	如果有附件，提交完成后，请核对附件大小，如显示“无附件”或显示附件大小为0，则说明上传不成功，需要重新上传一次。<br>
+			    	注意：系统仅保留最后一次提交的作业附件。
+		      </td>
+			  </tr>
+       <tr>
+  			<td colspan="2" class="info_b"><img src="/img/spacer.gif" /></td>
+			</tr>
+			  <tr>
+			    <td align="center" colspan="2">
+			    	<input type="submit" name="Submit" value="提交"   onclick="return submitcheck()" class="blue"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			      <input type="button" name="Submit" value="返回"  onclick="history.go(-1);" class="blue"/>
+		      </td>
+			  </tr>
+		</table>
+		</form>
+	  </div>
+	</td>
+  </tr>
+</table>
+<!-- BEGIN PROGRESS DIALOG -->
+<div id="div_inline" style="BORDER: buttonhighlight 2px outset; FONT-SIZE: 8pt; Z-INDEX: 4;position: absolute; left: 0px; top: 0px; width: 320px; BACKGROUND-COLOR: buttonface; text-align: center;display: none;onselectstart="window.event.returnValue=false;">
+<iframe src="about:blank" name="transfer" border=0 xSCROLLING=NO topmargin=0 leftmargin=0 frameborder=0 style="width: 320px; border: 1px solid #a3a3a3;"></iframe>
+</div>
+<!-- END PROGRESS DIALOG -->
+
+
+<!-- BEGIN FAKE MODAL DIV-->
+<DIV ID="divModal"
+   STYLE="BACKGROUND-COLOR: white; FILTER: alpha(opacity=75); LEFT: 0px; POSITION:
+ absolute; TOP: 0px; Z-INDEX: 3"
+   onclick="window.event.cancelBubble=true; window.event.returnValue=false;">
+</DIV>
+<!-- END FAKE MODAL DIV -->
+</body>
+</html>
+
+
