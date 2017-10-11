@@ -8,7 +8,6 @@ Learn.tsinghua.edu.cn
 
 import re
 import os
-import time
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup, Comment
@@ -303,6 +302,11 @@ class Work(LearnBase):
                 _file = None
             self._file = _file
         return self._file
+
+    def upload(self, file):
+        """ Upload hwfile """
+        # TODO
+        pass
 
 
 class File(LearnBase):
