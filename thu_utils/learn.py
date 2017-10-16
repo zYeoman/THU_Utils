@@ -163,8 +163,28 @@ class Course(LearnBase):
     def works(self):
         """ get all the work in course """
         if self.get('new', False):
-            return
+            # 新版
+            url = _URL_BASE_NEW + _PREF_WORK_NEW + self.get('id', '') + '/0'
+            json = _SESSION_NEW.get(url).json()
+            if json['message'] == 'success':
+                for work in json['resultList']:
+                    id_ = work['courseHomeworkInfo'].get('homewkAffix', '')
+                    fname = work['courseHomeworkInfo'].get(
+                        'homewkAffixFilename', '')
+                    title = work['courseHomeworkInfo']['title']
+                    time_ms = work['courseHomeworkInfo']['endDate']
+                    date = datetime.fromtimestamp(time_ms / 1000)
+                    details = work['courseHomeworkInfo']['detail']
+                    yield Work(id=id_,
+                               title=title,
+                               course=self.get('name', ''),
+                               details_=details,
+                               date=date,
+                               fname=fname,
+                               new=True)
+
         else:
+            # 旧版
             url = _URL_BASE + _PREF_WORK + self.get('id', '')
             soup = get_url(url)
             for i in soup.find_all('tr', class_=['tr1', 'tr2']):
@@ -189,21 +209,37 @@ class Course(LearnBase):
     def messages(self):
         """ get all messages in course """
         if self.get('new', False):
-            return
-        url = _URL_BASE + _PREF_MSG + self.get('id', '')
-        soup = get_url(url)
-        for mes in soup.find_all('tr', class_=['tr1', 'tr2']):
-            tds = mes.find_all('td')
-            title = tds[1].contents[1].text.replace(u'\xa0', u' ')
-            url = _URL_BASE + '/MultiLanguage/public/bbs/' + \
-                tds[1].contents[1]['href']
-            id_ = re.search(r"id=(\d+)", url).group(1)
-            date = datetime.strptime(tds[3].text, '%Y-%m-%d')
-            yield Message(title=title,
-                          course=self.get('name', ''),
-                          url=url,
-                          date=date,
-                          id=id_)
+            # 新版
+            url = _URL_BASE_NEW + _PREF_MSG_NEW + self.get('id', '')
+            json = _SESSION_NEW.get(url).json()
+            if json['message'] == 'success':
+                for record in json['paginationList']['recordList']:
+                    course_notice = record['courseNotice']
+                    yield Message(title=course_notice['title'],
+                                  course=self.get('name', ''),
+                                  details_=course_notice['detail'],
+                                  id=course_notice['id'],
+                                  new=True,
+                                  date=datetime.strptime(
+                                      course_notice['regDate'], '%Y-%m-%d')
+                                  )
+
+        else:
+            # 旧版
+            url = _URL_BASE + _PREF_MSG + self.get('id', '')
+            soup = get_url(url)
+            for mes in soup.find_all('tr', class_=['tr1', 'tr2']):
+                tds = mes.find_all('td')
+                title = tds[1].contents[1].text.replace(u'\xa0', u' ')
+                url = _URL_BASE + '/MultiLanguage/public/bbs/' + \
+                    tds[1].contents[1]['href']
+                id_ = re.search(r"id=(\d+)", url).group(1)
+                date = datetime.strptime(tds[3].text, '%Y-%m-%d')
+                yield Message(title=title,
+                              course=self.get('name', ''),
+                              url=url,
+                              date=date,
+                              id=id_)
 
     @property
     def files(self):
@@ -276,30 +312,46 @@ class Work(LearnBase):
     @property
     def details(self):
         """ the description of the work """
-        if not self._details:
-            soup = get_url(self.get('url', ''))
-            try:
-                _details = soup.find_all('td', class_='tr_2')[
-                    1].textarea.contents[0]
-            except:
-                _details = ""
-            self._details = _details.replace('\r', '')
+        if self.get('new', False):
+            # 新版
+            details = BeautifulSoup(self.get('details_', ''), 'lxml')
+            self._details = details.text
+        else:
+            # 旧版
+            if not self._details:
+                soup = get_url(self.get('url', ''))
+                try:
+                    _details = soup.find_all('td', class_='tr_2')[
+                        1].textarea.contents[0]
+                except:
+                    _details = ""
+                self._details = _details.replace('\r', '')
         return self._details
 
     @property
     def file(self):
         """ the file attached to the work """
         if not self.get('_file', ''):
-            soup = get_url(self.get('url', ''))
-            try:
-                fname = soup.find_all('td', class_='tr_2')[2].a.contents[0]
-                furl = 'http://learn.tsinghua.edu.cn' + \
-                    soup.find_all('td', class_='tr_2')[2].a['href']
+            if self.get('new', False):
+                # 新版
+                furl = _URL_BASE_NEW + _PREF_DOWNLOAD + self.get('id', '')
                 _file = File(url=furl,
-                             name=fname,
-                             course=self.get('course', ''))
-            except AttributeError:
-                _file = None
+                             name=self.get('fname', ''),
+                             course=self.get('course', ''),
+                             new=True)
+
+            else:
+                # 旧版
+                soup = get_url(self.get('url', ''))
+                try:
+                    fname = soup.find_all('td', class_='tr_2')[2].a.contents[0]
+                    furl = 'http://learn.tsinghua.edu.cn' + \
+                        soup.find_all('td', class_='tr_2')[2].a['href']
+                    _file = File(url=furl,
+                                 name=fname,
+                                 course=self.get('course', ''))
+                except AttributeError:
+                    _file = None
             self._file = _file
         return self._file
 
@@ -322,8 +374,10 @@ class File(LearnBase):
         if not os.path.exists(path):
             os.makedirs(path)
         if self.get('new', False):
+            # 新版
             req = _SESSION_NEW.get(self.get('url', ''), stream=True)
         else:
+            # 旧版
             req = _SESSION.get(self.get('url', ''), stream=True)
         with open(filepath, 'wb') as handle:
             if not req.ok:
@@ -348,11 +402,17 @@ class Message(LearnBase):
     @property
     def details(self):
         """ Details of Message """
-        if not self._details:
-            soup = get_url(self.get('url', ''))
-            _details = soup.find_all('td', class_='tr_l2')[
-                1].text.replace('\xa0', ' ')
-            _details = re.sub('(\\xa0)+', ' ', _details)
-            _details = re.sub('\n+', '\n', _details)
-            self._details = _details.replace('\r', '')
+        if self.get('new', False):
+            # 新版
+            details = BeautifulSoup(self.get('details_', ''), 'lxml')
+            self._details = details.text
+        else:
+            # 旧版
+            if not self._details:
+                soup = get_url(self.get('url', ''))
+                _details = soup.find_all('td', class_='tr_l2')[
+                    1].text.replace('\xa0', ' ')
+                _details = re.sub('(\\xa0)+', ' ', _details)
+                _details = re.sub('\n+', '\n', _details)
+                self._details = _details.replace('\r', '')
         return self._details
