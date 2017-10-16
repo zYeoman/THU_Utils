@@ -98,6 +98,8 @@ def main():
         LOG.info('Course: ' + course.name)
 
         for work in course.works:
+            if work.date < datetime.now():
+                continue
             handle_work(work)
 
         for message in course.messages:

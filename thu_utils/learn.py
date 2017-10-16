@@ -197,8 +197,6 @@ class Course(LearnBase):
                 title = i.find('a').contents[0].replace(u'\xa0', u' ')
                 end_time = tds[2].contents[0] + ' 23:59:59'
                 date = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
-                if date < datetime.now():
-                    continue
                 yield Work(id=id_,
                            title=title,
                            course=self.get('name', ''),
