@@ -10,6 +10,7 @@ import re
 import os
 from datetime import datetime
 import requests
+import tqdm
 from bs4 import BeautifulSoup, Comment
 
 from .user import User
@@ -64,7 +65,6 @@ def login():
     )
     req = _SESSION.post(_URL_LOGIN, data)
     # 即使登录失败也是200所以根据返回内容简单区分了
-    LOG.debug(req.text)
     if len(req.content) > 120:
         return False
     data = dict(
@@ -72,7 +72,6 @@ def login():
         i_pass=user.password,
     )
     req = _SESSION_NEW.post(_URL_LOGIN_NEW, data)
-    LOG.debug(req.text)
     return True
 
 
@@ -219,8 +218,7 @@ class Course(LearnBase):
                                   id=course_notice['id'],
                                   new=True,
                                   date=datetime.strptime(
-                                      course_notice['regDate'], '%Y-%m-%d')
-                                  )
+                                      course_notice['regDate'], '%Y-%m-%d'))
 
         else:
             # 旧版
@@ -243,17 +241,6 @@ class Course(LearnBase):
     def files(self):
         """ get all files in course """
 
-        def file_size_m(string):
-            """ 计算file大小 """
-            digitals = string[:-1]
-            if string.endswith('K'):
-                return float(digitals) / 1024
-            elif string.endswith('M'):
-                return float(digitals)
-            elif string.endswith('G'):
-                return 1024 * float(digitals)
-            return float(string) / 1024
-
         if self.get('new', False):
             url = _URL_BASE_NEW + _PREF_FILES_NEW + self.get('id', '') + '/0'
             json = _SESSION_NEW.post(url).json()
@@ -265,8 +252,7 @@ class Course(LearnBase):
                     for third_node in second_node['courseCoursewareList']:
                         file_info = third_node['resourcesMappingByFileId']
                         name = re.sub(r'_[^_]+\.', '.', file_info['fileName'])
-                        yield File(size=file_size_m(file_info['fileSize']),
-                                   name=name,
+                        yield File(name=name,
                                    new=True,
                                    url=_URL_BASE_NEW + _PREF_DOWNLOAD +
                                    file_info['fileId'],
@@ -281,15 +267,10 @@ class Course(LearnBase):
                     r'getfilelink=([^&]+)&',
                     str(j.find(text=lambda text: isinstance(
                         text, Comment)))).group(1)
-                # 使下载后可以把新文件标签去掉
-                # url = _URL_BASE + '/kejian/data/%s/download/%s' % (
-                #     self.get('id', ''), name)
                 url = _URL_BASE + tds[-5].a['href']
                 name = re.sub(r'_[^_]+\.', '.', name)
-                size = file_size_m(tds[-3].text)
                 title = tds[-5].a.text.strip() + name[-4:]
-                yield File(size=size,
-                           name=name,
+                yield File(name=name,
                            new=False,
                            url=url,
                            title=title,
@@ -353,11 +334,6 @@ class Work(LearnBase):
             self._file = _file
         return self._file
 
-    def upload(self, file):
-        """ Upload hwfile """
-        # TODO
-        pass
-
 
 class File(LearnBase):
     """
@@ -382,9 +358,19 @@ class File(LearnBase):
                 raise ValueError('failed in saving file',
                                  self.get('name', ''),
                                  self.get('url', ''))
-            for block in req.iter_content(1024):
-                handle.write(block)
+            req_size = int(req.headers['content-length'])
+            with tqdm.tqdm(total=req_size, unit='B',
+                           unit_scale=True, unit_divisor=1024) as pbar:
+                for block in req.iter_content(1024):
+                    handle.write(block)
+                    pbar.update(len(block))
+
         return filepath
+
+    def upload(self, file, target, uploader):
+        """ Upload file """
+        # TODO
+        uploader.upload(target, file)
 
 
 class Message(LearnBase):
