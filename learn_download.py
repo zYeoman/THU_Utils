@@ -27,6 +27,8 @@ USER = User('.ownuser', 'Input owncloud user')
 OC = owncloud.Client('https://cloud.mickir.me')
 OC.login(USER.username, USER.password)
 
+SAVE = '/mnt/tmp'
+
 TIMEFMT = 'DEADLINE: <%Y-%m-%d %a %H:%M>'
 LWORK = ['* 作业']
 LMSG = ['* 公告']
@@ -41,7 +43,7 @@ def handle_work(work):
 
     if work.file is not None:
         LWORK.append('FILE: %s' % work.file.name)
-        if work.file.save(os.path.join('tmp', work.course)):
+        if work.file.save(os.path.join(SAVE, work.course)):
             LOG.info('Homework file: ' + work.file.name)
             send_file(work.file, '/作业/')
     LWORK.append('\n')
@@ -50,8 +52,8 @@ def handle_work(work):
 
 def handle_file(file):
     """Handle file"""
-    if file.save(os.path.join('tmp', file.course)):
-        LOG.info('File: ' + file.name)
+    LOG.info('File: ' + file.name)
+    if file.save(os.path.join(SAVE, file.course)):
         send_file(file)
 
 
@@ -71,8 +73,9 @@ def google_upload(message):
 
 def send_file(file, path='/'):
     """ Send file to GoogleDrive or NextCloud """
+    LOG.info('Upload ' + file.course + ' ' + file.name)
     target_path = '课程内容/' + file.course + path
-    local_path = 'tmp/' + file.course + '/' + file.name
+    local_path = SAVE + '/' + file.course + '/' + file.name
     try:
         OC.mkdir('课程内容/' + file.course + '/')
     except owncloud.HTTPResponseError:
@@ -83,7 +86,6 @@ def send_file(file, path='/'):
         pass
 
     OC.put_file(target_path + file.name, local_path)
-    LOG.info('Upload ' + file.course + ' ' + file.name)
 
 
 def main():
@@ -93,7 +95,7 @@ def main():
         OC.mkdir('课程内容')
     except owncloud.HTTPResponseError:
         pass
-    info = open("tmp/Info.org", "w")
+    info = open(SAVE + "/Info.org", "w")
     for course in semester.courses:
         LOG.info('Course: ' + course.name)
 
@@ -112,7 +114,7 @@ def main():
     info.write('\n\n')
     info.write('\n'.join(LMSG))
     info.close()
-    OC.put_file('课程内容/笔记/Info.org', 'tmp/Info.org')
+    OC.put_file('课程内容/笔记/Info.org', SAVE + '/Info.org')
 
 
 if __name__ == "__main__":
