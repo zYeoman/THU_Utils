@@ -16,6 +16,8 @@ Create: 2017-09-17
 """
 
 import os
+import atexit
+import pickle
 from datetime import datetime
 import owncloud
 from thu_utils import User
@@ -27,11 +29,23 @@ USER = User('.ownuser', 'Input owncloud user')
 OC = owncloud.Client('https://cloud.mickir.me')
 OC.login(USER.username, USER.password)
 
-SAVE = '/mnt/tmp'
+SAVE = 'tmp'
 
 TIMEFMT = 'DEADLINE: <%Y-%m-%d %a %H:%M>'
 LWORK = ['* 作业']
 LMSG = ['* 公告']
+DOWNFILE = 'log/download.log'
+if os.path.exists(DOWNFILE):
+    with open(DOWNFILE, 'rb') as down_r:
+        DOWNLOADED = pickle.load(down_r)
+else:
+    DOWNLOADED = []
+
+
+def exit_handler():
+    """退出前保存已下载文件 """
+    with open(DOWNFILE, 'wb') as down_w:
+        pickle.dump(DOWNLOADED, down_w)
 
 
 def handle_work(work):
@@ -43,8 +57,9 @@ def handle_work(work):
 
     if work.file is not None:
         LWORK.append('FILE: %s' % work.file.name)
-        if work.file.save(os.path.join(SAVE, work.course)):
-            LOG.info('Homework file: ' + work.file.name)
+        LOG.info('Homework file: ' + work.file.name)
+        if work.course + work.file.name not in DOWNLOADED:
+            work.file.save(os.path.join(SAVE, work.course))
             send_file(work.file, '/作业/')
     LWORK.append('\n')
     google_upload(work)
@@ -53,7 +68,8 @@ def handle_work(work):
 def handle_file(file):
     """Handle file"""
     LOG.info('File: ' + file.name)
-    if file.save(os.path.join(SAVE, file.course)):
+    if file.course + file.name not in DOWNLOADED:
+        file.save(os.path.join(SAVE, file.course))
         send_file(file)
 
 
@@ -86,6 +102,8 @@ def send_file(file, path='/'):
         pass
 
     OC.put_file(target_path + file.name, local_path)
+    os.remove(local_path)
+    DOWNLOADED.append(file.course + file.name)
 
 
 def main():
@@ -118,4 +136,5 @@ def main():
 
 
 if __name__ == "__main__":
+    atexit.register(exit_handler)
     main()
