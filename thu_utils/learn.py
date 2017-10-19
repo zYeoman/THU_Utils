@@ -241,6 +241,17 @@ class Course(LearnBase):
     def files(self):
         """ get all files in course """
 
+        def file_size_m(string):
+            """ 计算file大小 """
+            digitals = string[:-1]
+            if string.endswith('K'):
+                return float(digitals) * 1024
+            elif string.endswith('M'):
+                return float(digitals) * 1024 * 1024
+            elif string.endswith('G'):
+                return float(digitals) * 1024 * 1024 * 1024
+            return float(string)
+
         if self.get('new', False):
             url = _URL_BASE_NEW + _PREF_FILES_NEW + self.get('id', '') + '/0'
             json = _SESSION_NEW.post(url).json()
@@ -252,7 +263,8 @@ class Course(LearnBase):
                     for third_node in second_node['courseCoursewareList']:
                         file_info = third_node['resourcesMappingByFileId']
                         name = re.sub(r'_[^_]+\.', '.', file_info['fileName'])
-                        yield File(name=name,
+                        yield File(size=file_size_m(file_info['fileSize']),
+                                   name=name,
                                    new=True,
                                    url=_URL_BASE_NEW + _PREF_DOWNLOAD +
                                    file_info['fileId'],
@@ -269,8 +281,10 @@ class Course(LearnBase):
                         text, Comment)))).group(1)
                 url = _URL_BASE + tds[-5].a['href']
                 name = re.sub(r'_[^_]+\.', '.', name)
+                size = file_size_m(tds[-3].text)
                 title = tds[-5].a.text.strip() + name[-4:]
-                yield File(name=name,
+                yield File(size=size,
+                           name=name,
                            new=False,
                            url=url,
                            title=title,
@@ -358,7 +372,9 @@ class File(LearnBase):
                 raise ValueError('failed in saving file',
                                  self.get('name', ''),
                                  self.get('url', ''))
-            req_size = int(req.headers['content-length'])
+            req_size = max(self.get('size', 0), int(
+                req.headers.get('content-length', '0')))
+            req_size = 10240 if req_size == 0 else req_size
             with tqdm.tqdm(total=req_size, unit='B',
                            unit_scale=True, unit_divisor=1024) as pbar:
                 for block in req.iter_content(1024):
