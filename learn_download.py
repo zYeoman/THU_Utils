@@ -16,6 +16,7 @@ Create: 2017-09-17
 """
 
 import os
+import functools
 import atexit
 import pickle
 from datetime import datetime
@@ -32,8 +33,8 @@ OC.login(USER.username, USER.password)
 SAVE = 'tmp'
 
 TIMEFMT = 'DEADLINE: <%Y-%m-%d %a %H:%M>'
-LWORK = ['* 作业']
-LMSG = ['* 公告']
+LWORK = []
+LMSG = []
 DOWNFILE = 'log/download.log'
 if os.path.exists(DOWNFILE):
     with open(DOWNFILE, 'rb') as down_r:
@@ -48,20 +49,48 @@ def exit_handler():
         pickle.dump(DOWNLOADED, down_w)
 
 
+def cmp(item1, item2):
+    """按时间正序排序"""
+    if item1.date < item2.date:
+        return -1
+    return 1
+
+
+def works_to_str(works):
+    """作业内容排序变成字符串"""
+    works.sort(key=functools.cmp_to_key(cmp))
+    string = ['* 作业']
+    for work in works:
+        string.append('** %s：%s ' % (work.course, work.title))
+        string.append(datetime.strftime(work.date, TIMEFMT))
+        string.append(work.details)
+        if work.file is not None:
+            string.append('FILE: %s' % work.file.name)
+        string.append('\n')
+    return '\n'.join(string)
+
+
+def msgs_to_str(msgs):
+    """通知内容排序变成字符串"""
+    msgs.sort(key=functools.cmp_to_key(cmp), reverse=True)
+    string = ['* 通知']
+    for message in msgs:
+        string.append('** %s：%s ' % (message.course, message.title))
+        string.append(datetime.strftime(message.date, '%Y-%m-%d'))
+        string.append(message.details)
+    return '\n'.join(string)
+
+
 def handle_work(work):
     """Handle work"""
     LOG.info('Homework: ' + work.title)
-    LWORK.append('** %s：%s ' % (work.course, work.title))
-    LWORK.append(datetime.strftime(work.date, TIMEFMT))
-    LWORK.append(work.details)
+    LWORK.append(work)
 
     if work.file is not None:
-        LWORK.append('FILE: %s' % work.file.name)
         LOG.info('Homework file: ' + work.file.name)
         if work.course + work.file.name not in DOWNLOADED:
             work.file.save(os.path.join(SAVE, work.course))
             send_file(work.file, '/作业/')
-    LWORK.append('\n')
     google_upload(work)
 
 
@@ -76,9 +105,7 @@ def handle_file(file):
 def handle_message(message):
     """Handle message"""
     LOG.info('Message: ' + message.title)
-    LMSG.append('** %s：%s ' % (message.course, message.title))
-    LMSG.append(datetime.strftime(message.date, '%Y-%m-%d'))
-    LMSG.append(message.details)
+    LMSG.append(message)
     google_upload(message)
 
 
@@ -128,9 +155,9 @@ def main():
         for file in course.files:
             handle_file(file)
 
-    info.write('\n'.join(LWORK))
+    info.write(works_to_str(LWORK))
     info.write('\n\n')
-    info.write('\n'.join(LMSG))
+    info.write(msgs_to_str(LMSG))
     info.close()
     OC.put_file('课程内容/笔记/Info.org', SAVE + '/Info.org')
 
