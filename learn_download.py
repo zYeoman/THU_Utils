@@ -164,4 +164,10 @@ def main():
 
 if __name__ == "__main__":
     atexit.register(exit_handler)
-    main()
+    try:
+        main()
+    except Exception as e:
+        info = open(SAVE + "/Info.org", "w")
+        info.write(str(e))
+        info.close()
+        OC.put_file('课程内容/笔记/Info.org', SAVE + '/Info.org')
