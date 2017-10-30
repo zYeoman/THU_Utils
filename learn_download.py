@@ -63,7 +63,7 @@ def works_to_str(works):
     for work in works:
         string.append('** %s：%s ' % (work.course, work.title))
         string.append(datetime.strftime(work.date, TIMEFMT))
-        string.append(work.details)
+        string.append(work.details if work.details is not None else '')
         if work.file is not None:
             string.append('FILE: %s' % work.file.name)
         string.append('\n')

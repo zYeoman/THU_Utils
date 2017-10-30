@@ -307,8 +307,12 @@ class Work(LearnBase):
         """ the description of the work """
         if self.get('new', False):
             # 新版
-            details = BeautifulSoup(self.get('details_', ''), 'lxml')
-            self._details = details.text
+            try:
+                details = BeautifulSoup(self.get('details_', ''), 'lxml')
+                self._details = details.text
+            except TypeError:
+                self._details = self.get('details_', '')
+
         else:
             # 旧版
             if not self._details:
