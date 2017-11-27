@@ -255,6 +255,11 @@ class Course(LearnBase):
         if self.get('new', False):
             url = _URL_BASE_NEW + _PREF_FILES_NEW + self.get('id', '') + '/0'
             json = _SESSION_NEW.post(url).json()
+            # 一键已读
+            _SESSION_NEW.post(
+                _URL_BASE_NEW +
+                '/b/myCourse/notice/addStatusforYiDu/' +
+                self.get('id', ''))
             url = _URL_BASE_NEW + \
                 "/b/courseFileAccess/markStatusforYiDu/" + self.get('id', '')
             _SESSION_NEW.post(url).json()
