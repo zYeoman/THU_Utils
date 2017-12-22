@@ -28,7 +28,7 @@ from thu_utils import LOG
 
 USER = User('.ownuser', 'Input owncloud user')
 OC = owncloud.Client('https://cloud.mickir.me')
-OC.login(USER.username, USER.password)
+OC.login(USER.username.decode('utf-8'), USER.password.decode('utf-8'))
 
 SAVE = 'tmp'
 
