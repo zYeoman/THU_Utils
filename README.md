@@ -17,6 +17,17 @@ make install
 
 ## TODO
 * learn_download.py 上传文件、作业信息到 GoogleCalendar
+* 自动处理讲座公告
+* 自动处理实验室科研探究公告
+* 支持作业提交
+* 下载文件名重命名掩码
+* 支持同步到GTD工具
+
+### GUI计划
+* 番茄工作法
+* KANBAN工具
+* 社区？
+* 选课助手？？？
 
 ## Test
 ```
