@@ -48,7 +48,7 @@ class User(object):
         """init set user info
         :return: None
         """
-        print(hint)
+        print(self._hint)
         username = input('Username: ').encode()
         password = getpass.getpass().encode()
         self._data['username'] = username
