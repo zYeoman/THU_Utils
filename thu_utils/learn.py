@@ -13,7 +13,7 @@ import requests
 import tqdm
 from bs4 import BeautifulSoup, Comment
 
-from .user import User
+from userpass import User
 from .logger import LOG
 
 # global vars
@@ -58,7 +58,7 @@ def login():
     login to get cookies in _SESSION
     :return:True if succeed
     """
-    user = User()
+    user = User('.thu')
     data = dict(
         userid=user.username,
         userpass=user.password,

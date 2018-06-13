@@ -15,15 +15,6 @@ from context import thu_utils
 class TestTHU(unittest.TestCase):
     """Unittest for thu_utils"""
 
-    def test_user(self):
-        """test User"""
-        thu_utils.user.input = lambda _: 'test'
-        thu_utils.user.getpass.getpass = lambda: 'test'
-        user = thu_utils.User('.test_thu')
-        self.assertEqual(user.username, b'test')
-        self.assertEqual(user.password, b'test')
-        user.del_user()
-
     def test_net(self):
         """test Net"""
         net = thu_utils.Net()
@@ -45,6 +36,7 @@ class TestTHU(unittest.TestCase):
         # TODO: test Usereg
         usereg = thu_utils.Usereg()
         usereg.show()
+
 
 if __name__ == "__main__":
     unittest.main()

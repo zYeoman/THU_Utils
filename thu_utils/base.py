@@ -11,7 +11,7 @@ methods:
 
 import requests
 
-from .user import User
+from userpass import User
 
 
 class THUBase(object):
@@ -21,7 +21,7 @@ class THUBase(object):
         """init Base
         :param user: User info
         """
-        self._user = user if user is not None else User()
+        self._user = user if user is not None else User('.thu')
         self._session = requests.session()
 
     def __del__(self):
