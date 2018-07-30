@@ -23,7 +23,7 @@ class Net(THUBase):
         :param user: User info
         """
         super(Net, self).__init__(user)
-        self._base = 'http://net.tsinghua.edu.cn/'
+        self._base = 'https://net.tsinghua.edu.cn/'
         self._login_url = self._base + 'do_login.php'
 
     def show(self):
