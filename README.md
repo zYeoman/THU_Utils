@@ -1,3 +1,8 @@
+# Almost Discontinued....
+因为TODO还有一大堆的时候，我毕业了= =
+
+以及，貌似网络学堂又改版了。但是我毕业了
+
 # THU_Utils
 Tools for thu students
 
